@@ -16,7 +16,7 @@ class LecturerSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'name', 'profile_picture', 'courses']
 
     def get_courses(self, obj):
-        courses = Course.objects.filter(lecturer=obj).select_related('lecturer')
+        courses = Course.objects.filter(lecturer=obj)
         return CourseSerializer(courses, many=True).data
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'name', 'courses']
 
     def get_courses(self, obj):
-        enrollments = CourseEnrollment.objects.filter(student=obj).select_related('course')
+        enrollments = CourseEnrollment.objects.filter(student=obj)
         courses = [enrollment.course for enrollment in enrollments]
         return CourseSerializer(courses, many=True).data
 
@@ -48,7 +48,7 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'course_code', 'lecturer', 'students']
 
     def get_students(self, obj):
-        enrollments = CourseEnrollment.objects.filter(course=obj).select_related('student')
+        enrollments = CourseEnrollment.objects.filter(course=obj)
         students = [enrollment.student for enrollment in enrollments]
         return StudentSerializer(students, many=True).data
 
