@@ -40,7 +40,7 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ['student', 'enrolled_at']
 
 class CourseSerializer(serializers.ModelSerializer):
-    lecturer = LecturerSerializer()
+    lecturer = serializers.StringRelatedField()  # Changed to StringRelatedField to avoid recursion issues
     students = serializers.SerializerMethodField()
 
     class Meta:
