@@ -9,17 +9,28 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LecturerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    courses = serializers.SerializerMethodField()
 
     class Meta:
         model = Lecturer
-        fields = ['id', 'user', 'name', 'profile_picture']
+        fields = ['id', 'user', 'name', 'profile_picture', 'courses']
+
+    def get_courses(self, obj):
+        courses = Course.objects.filter(lecturer=obj)
+        return CourseSerializer(courses, many=True).data
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    courses = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
-        fields = ['id', 'user', 'name']
+        fields = ['id', 'user', 'name', 'courses']
+
+    def get_courses(self, obj):
+        enrollments = CourseEnrollment.objects.filter(student=obj)
+        courses = [enrollment.course for enrollment in enrollments]
+        return CourseSerializer(courses, many=True).data
 
 class CourseEnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
@@ -30,11 +41,16 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     lecturer = LecturerSerializer()
-    students = CourseEnrollmentSerializer(source='courseenrollment_set', many=True)
+    students = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'course_code', 'lecturer', 'students']
+
+    def get_students(self, obj):
+        enrollments = CourseEnrollment.objects.filter(course=obj)
+        students = [enrollment.student for enrollment in enrollments]
+        return StudentSerializer(students, many=True).data
 
 class AttendanceSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
