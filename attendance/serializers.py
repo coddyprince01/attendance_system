@@ -9,28 +9,17 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LecturerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    courses = serializers.SerializerMethodField()
 
     class Meta:
         model = Lecturer
-        fields = ['id', 'user', 'name', 'profile_picture', 'latitude', 'longitude', 'courses']
-
-    def get_courses(self, obj):
-        courses = Course.objects.filter(lecturer=obj)
-        return CourseSerializer(courses, many=True).data
+        fields = ['id', 'user', 'name']
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    courses = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
-        fields = ['id', 'user', 'name', 'courses']
-
-    def get_courses(self, obj):
-        enrollments = CourseEnrollment.objects.filter(student=obj)
-        courses = [enrollment.course for enrollment in enrollments]
-        return CourseSerializer(courses, many=True).data
+        fields = ['id', 'user', 'name']
 
 class CourseEnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
@@ -40,17 +29,12 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ['student', 'enrolled_at']
 
 class CourseSerializer(serializers.ModelSerializer):
-    lecturer = serializers.StringRelatedField()  # Use StringRelatedField to avoid recursion
-    students = serializers.SerializerMethodField()
+    lecturer = LecturerSerializer()
+    students = CourseEnrollmentSerializer(source='courseenrollment_set', many=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'course_code', 'lecturer', 'students']
-
-    def get_students(self, obj):
-        enrollments = CourseEnrollment.objects.filter(course=obj)
-        students = [enrollment.student for enrollment in enrollments]
-        return StudentSerializer(students, many=True).data
 
 class AttendanceSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
@@ -59,7 +43,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendance
-        fields = ['id', 'course', 'date', 'present_students', 'missed_students', 'lecturer_latitude', 'lecturer_longitude']
+        fields = ['id', 'course', 'date', 'present_students', 'missed_students']
 
 class AttendanceTokenSerializer(serializers.ModelSerializer):
     course = CourseSerializer()

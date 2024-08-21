@@ -7,7 +7,6 @@ from .serializers import LecturerSerializer, StudentSerializer, CourseSerializer
 from django.utils import timezone
 from django.http import HttpResponse
 import csv
-from rest_framework import permissions
 
 class LecturerViewSet(viewsets.ModelViewSet):
     queryset = Lecturer.objects.all()
@@ -60,31 +59,3 @@ class AttendanceTokenViewSet(viewsets.ModelViewSet):
     queryset = AttendanceToken.objects.all()
     serializer_class = AttendanceTokenSerializer
     permission_classes = [IsAuthenticated]
-
-class StudentEnrolledCoursesView(generics.ListAPIView):
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        try:
-            student = Student.objects.get(user=user)
-        except Student.DoesNotExist:
-            return Course.objects.none()
-
-        enrollments = CourseEnrollment.objects.filter(student=student)
-        course_ids = enrollments.values_list('course_id', flat=True)
-        return Course.objects.filter(id__in=course_ids)
-
-class LecturerCoursesView(generics.ListAPIView):
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        try:
-            lecturer = Lecturer.objects.get(user=user)
-        except Lecturer.DoesNotExist:
-            return Course.objects.none()
-
-        return Course.objects.filter(lecturer=lecturer)
