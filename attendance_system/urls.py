@@ -21,6 +21,6 @@ from django.http import HttpResponseRedirect
 urlpatterns = [
     path('api/', include('attendance.urls')),
     path('admin/', admin.site.urls),
-    path('', lambda request: HttpResponseRedirect('/admin/')),  # Redirect root URL to /admin/
+    path('', lambda request: HttpResponseRedirect('/api/')),  # Redirect root URL to /api/
 
 ]
