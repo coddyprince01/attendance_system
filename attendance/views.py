@@ -7,6 +7,8 @@ from .serializers import LecturerSerializer, StudentSerializer, CourseSerializer
 from django.utils import timezone
 from django.http import HttpResponse
 import csv
+from rest_framework import generics, permissions
+
 
 class LecturerViewSet(viewsets.ModelViewSet):
     queryset = Lecturer.objects.all()
@@ -59,3 +61,16 @@ class AttendanceTokenViewSet(viewsets.ModelViewSet):
     queryset = AttendanceToken.objects.all()
     serializer_class = AttendanceTokenSerializer
     permission_classes = [IsAuthenticated]
+
+class StudentEnrolledCoursesView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Get the logged-in user
+        user = self.request.user
+        # Get the student associated with this user
+        student = Student.objects.get(user=user)
+        # Get all courses the student is enrolled in
+        enrolled_courses = Course.objects.filter(students=student)
+        return enrolled_courses
