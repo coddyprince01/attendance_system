@@ -13,7 +13,7 @@ class LecturerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lecturer
-        fields = ['id', 'user', 'name', 'profile_picture', 'courses']
+        fields = ['id', 'user', 'name', 'profile_picture', 'latitude', 'longitude', 'courses']
 
     def get_courses(self, obj):
         courses = Course.objects.filter(lecturer=obj)
@@ -40,7 +40,7 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ['student', 'enrolled_at']
 
 class CourseSerializer(serializers.ModelSerializer):
-    lecturer = serializers.StringRelatedField()  # Changed to StringRelatedField to avoid recursion issues
+    lecturer = serializers.StringRelatedField()  # Use StringRelatedField to avoid recursion
     students = serializers.SerializerMethodField()
 
     class Meta:
@@ -59,7 +59,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Attendance
-        fields = ['id', 'course', 'date', 'present_students', 'missed_students']
+        fields = ['id', 'course', 'date', 'present_students', 'missed_students', 'lecturer_latitude', 'lecturer_longitude']
 
 class AttendanceTokenSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
