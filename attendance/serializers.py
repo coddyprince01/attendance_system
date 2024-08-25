@@ -30,7 +30,7 @@ class CourseSerializer(serializers.ModelSerializer):
 # Student serializer references CourseSerializer
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    courses = CourseSerializer(many=True, source='courses', read_only=True)
+    courses = CourseSerializer(many=True, read_only=True)
 
     class Meta:
         model = Student
