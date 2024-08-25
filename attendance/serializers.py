@@ -9,10 +9,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LecturerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    courses = serializers.StringRelatedField(many=True, read_only=True)
+    # courses = CourseSerializer(many=True, read_only=True, source='courses')
 
     class Meta:
         model = Lecturer
-        fields = ['id', 'user', 'name', 'profile_picture']
+        fields = ['id', 'user', 'name', 'profile_picture', 'courses']
+
+        
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
