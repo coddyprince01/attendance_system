@@ -44,6 +44,7 @@ INSTALLED_APPS = [
    # 'django.contrib.gis',  # For handling GIS (Geographical Information System)
     'attendance_system',
     'openpyxl',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
