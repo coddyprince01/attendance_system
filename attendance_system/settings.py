@@ -153,3 +153,13 @@ import os
 # Other settings...
 
 GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', 'C:\\GDAL\\bin\\gdal304.dll')
+
+# settings.py
+
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_URL = '/static/'  # URL to use when referring to static files
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Absolute path to collect static files
