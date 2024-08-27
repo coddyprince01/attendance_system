@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,11 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework',  # Django REST Framework
+    'rest_framework.authtoken',  # Django REST Framework Token Authentication
     'attendance',  # Your app name
     'django_cleanup',  # Automatically deletes old files from ImageField when updating
-   # 'django.contrib.gis',  # For handling GIS (Geographical Information System)
     'attendance_system',
     'openpyxl',
     'drf_yasg',
@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  #add
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,7 +123,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -131,35 +133,17 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
 # Django REST Framework settings
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.TokenAuthentication',
-#     ],
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',
-#     ],
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
-# Custom user model
-# AUTH_USER_MODEL = 'attendance.User'
-
-#os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal309.dll'
-#os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
-
-import os
-
-# Other settings...
-
+# GIS and other settings
+# os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal309.dll'
+# os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
 GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', 'C:\\GDAL\\bin\\gdal304.dll')
-
-# settings.py
-
-import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-STATIC_URL = '/static/'  # URL to use when referring to static files
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Absolute path to collect static files

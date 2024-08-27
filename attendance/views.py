@@ -1,25 +1,36 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from django.contrib.auth import authenticate, login, logout
 from .models import Lecturer, Student, Course, CourseEnrollment, Attendance, AttendanceToken
-from .serializers import LecturerSerializer, StudentSerializer, CourseSerializer, AttendanceSerializer, AttendanceTokenSerializer
+from .serializers import (
+    LecturerSerializer, 
+    StudentSerializer, 
+    CourseSerializer, 
+    AttendanceSerializer, 
+    AttendanceTokenSerializer,
+    UserSerializer
+)
 from django.utils import timezone
 from django.http import HttpResponse
 import csv
-from rest_framework import generics, permissions
 
-
+# Lecturer ViewSet
 class LecturerViewSet(viewsets.ModelViewSet):
     queryset = Lecturer.objects.all()
     serializer_class = LecturerSerializer
     permission_classes = [IsAuthenticated]
 
+# Student ViewSet
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
     permission_classes = [IsAuthenticated]
 
+# Course ViewSet
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
@@ -28,10 +39,15 @@ class CourseViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def generate_attendance_token(self, request, pk=None):
         course = self.get_object()
-        token = AttendanceToken.objects.create(course=course, token="ABCDE", expires_at=timezone.now() + timezone.timedelta(minutes=15))
+        token = AttendanceToken.objects.create(
+            course=course, 
+            token="ABCDE", 
+            expires_at=timezone.now() + timezone.timedelta(minutes=15)
+        )
         serializer = AttendanceTokenSerializer(token)
         return Response(serializer.data)
 
+# Attendance ViewSet
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
@@ -57,14 +73,16 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         return response
 
+# AttendanceToken ViewSet
 class AttendanceTokenViewSet(viewsets.ModelViewSet):
     queryset = AttendanceToken.objects.all()
     serializer_class = AttendanceTokenSerializer
     permission_classes = [IsAuthenticated]
 
+# Student Enrolled Courses View
 class StudentEnrolledCoursesView(generics.ListAPIView):
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Get the logged-in user
@@ -74,3 +92,24 @@ class StudentEnrolledCoursesView(generics.ListAPIView):
         # Get all courses the student is enrolled in
         enrolled_courses = Course.objects.filter(students=student)
         return enrolled_courses
+
+# User Authentication Views
+class CustomObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'username': user.username
+        })
+
+class LogoutView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        request.user.auth_token.delete()
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
