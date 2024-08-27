@@ -12,6 +12,7 @@ router.register(r'attendance-tokens', views.AttendanceTokenViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('api/student-enrolled-courses/', views.StudentEnrolledCoursesView.as_view(), name='student-enrolled-courses'),
-    path('api/login/', views.CustomObtainAuthToken.as_view(), name='api_login'),
+    path('api/login/student/', views.StudentLoginView.as_view(), name='student_login'),
+    path('api/login/staff/', views.StaffLoginView.as_view(), name='staff_login'),
     path('api/logout/', views.LogoutView.as_view(), name='api_logout'),
 ]

@@ -93,19 +93,30 @@ class StudentEnrolledCoursesView(generics.ListAPIView):
         enrolled_courses = Course.objects.filter(students=student)
         return enrolled_courses
 
-# User Authentication Views
-class CustomObtainAuthToken(ObtainAuthToken):
+# Custom Login Views
+class StudentLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.pk,
-            'username': user.username
-        })
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None and hasattr(user, 'student'):
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key, 'user_id': user.pk, 'username': user.username})
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
+class StaffLoginView(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None and hasattr(user, 'lecturer'):
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key, 'user_id': user.pk, 'username': user.username})
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+# Logout View
 class LogoutView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 

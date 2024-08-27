@@ -147,3 +147,9 @@ REST_FRAMEWORK = {
 # os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal309.dll'
 # os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
 GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', 'C:\\GDAL\\bin\\gdal304.dll')
+
+AUTHENTICATION_BACKENDS = (
+    'attendance.authentication_backends.StudentBackend',
+    'attendance.authentication_backends.StaffBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Default backend
+)
