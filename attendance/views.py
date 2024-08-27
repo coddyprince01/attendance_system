@@ -98,22 +98,46 @@ class StudentLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
+        student_id = request.data.get('student_id')  # Get the student ID from the request
+
         user = authenticate(request, username=username, password=password)
         
         if user is not None and hasattr(user, 'student'):
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key, 'user_id': user.pk, 'username': user.username})
+            student = user.student
+            if student.id_number == student_id:  # Verify the student ID
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({
+                    'token': token.key,
+                    'user_id': user.pk,
+                    'username': user.username,
+                    'student_id': student.id_number  # Include student ID in the response
+                })
+            else:
+                return Response({'error': 'Invalid student ID'}, status=status.HTTP_400_BAD_REQUEST)
+        
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 class StaffLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
+        staff_id = request.data.get('staff_id')  # Get the staff ID from the request
+
         user = authenticate(request, username=username, password=password)
 
         if user is not None and hasattr(user, 'lecturer'):
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key, 'user_id': user.pk, 'username': user.username})
+            lecturer = user.lecturer
+            if lecturer.staff_id == staff_id:  # Verify the staff ID
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({
+                    'token': token.key,
+                    'user_id': user.pk,
+                    'username': user.username,
+                    'staff_id': lecturer.staff_id  # Include staff ID in the response
+                })
+            else:
+                return Response({'error': 'Invalid staff ID'}, status=status.HTTP_400_BAD_REQUEST)
+        
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 # Logout View
