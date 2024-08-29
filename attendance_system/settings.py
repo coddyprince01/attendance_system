@@ -153,3 +153,22 @@ AUTHENTICATION_BACKENDS = (
     'attendance.authentication_backends.StaffBackend',
     'django.contrib.auth.backends.ModelBackend',  # Default backend
 )
+
+# Django settings for the attendance_system project
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'TokenAuth': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Token-based authentication using Bearer token',
+        }
+    },
+    'SECURITY': [
+        {
+            'TokenAuth': []
+        }
+    ],
+}
+

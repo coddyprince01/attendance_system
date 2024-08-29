@@ -1,11 +1,10 @@
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
 from attendance.models import Student, Lecturer
 
 class StudentBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
+    def authenticate(self, request, username=None, password=None, student_id=None, **kwargs):
         try:
-            student = Student.objects.get(user__username=username) or Student.objects.get(user__email=username) or Student.objects.get(id_number=username)
+            student = Student.objects.get(user__username=username, student_id=student_id)
         except Student.DoesNotExist:
             return None
 
@@ -14,12 +13,12 @@ class StudentBackend(ModelBackend):
         return None
 
 class StaffBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
+    def authenticate(self, request, username=None, password=None, staff_id=None, **kwargs):
         try:
-            staff = Lecturer.objects.get(user__username=username) or Lecturer.objects.get(user__email=username) or Lecturer.objects.get(staff_id=username)
+            lecturer = Lecturer.objects.get(user__username=username, staff_id=staff_id)
         except Lecturer.DoesNotExist:
             return None
 
-        if staff.user.check_password(password):
-            return staff.user
+        if lecturer.user.check_password(password):
+            return lecturer.user
         return None

@@ -4,15 +4,16 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from django.contrib.auth import authenticate, login, logout
-from .models import Lecturer, Student, Course, CourseEnrollment, Attendance, AttendanceToken
+from django.contrib.auth import authenticate, logout
+from .models import Lecturer, Student, Course, Attendance, AttendanceToken
 from .serializers import (
     LecturerSerializer, 
     StudentSerializer, 
     CourseSerializer, 
     AttendanceSerializer, 
     AttendanceTokenSerializer,
-    UserSerializer
+    LogoutSerializer,
+    SubmitLocationSerializer
 )
 from django.utils import timezone
 from django.http import HttpResponse
@@ -85,32 +86,27 @@ class StudentEnrolledCoursesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Get the logged-in user
         user = self.request.user
-        # Get the student associated with this user
         student = Student.objects.get(user=user)
-        # Get all courses the student is enrolled in
-        enrolled_courses = Course.objects.filter(students=student)
-        return enrolled_courses
+        return Course.objects.filter(students=student)
 
 # Custom Login Views
 class StudentLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-        student_id = request.data.get('student_id')  # Get the student ID from the request
+        student_id = request.data.get('student_id')
 
         user = authenticate(request, username=username, password=password)
-        
-        if user is not None and hasattr(user, 'student'):
+        if user and hasattr(user, 'student'):
             student = user.student
-            if student.id_number == student_id:  # Verify the student ID
+            if student.student_id == student_id:
                 token, created = Token.objects.get_or_create(user=user)
                 return Response({
                     'token': token.key,
                     'user_id': user.pk,
                     'username': user.username,
-                    'student_id': student.id_number  # Include student ID in the response
+                    'student_id': student.student_id
                 })
             else:
                 return Response({'error': 'Invalid student ID'}, status=status.HTTP_400_BAD_REQUEST)
@@ -121,19 +117,18 @@ class StaffLoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-        staff_id = request.data.get('staff_id')  # Get the staff ID from the request
+        staff_id = request.data.get('staff_id')
 
         user = authenticate(request, username=username, password=password)
-
-        if user is not None and hasattr(user, 'lecturer'):
+        if user and hasattr(user, 'lecturer'):
             lecturer = user.lecturer
-            if lecturer.staff_id == staff_id:  # Verify the staff ID
+            if lecturer.staff_id == staff_id:
                 token, created = Token.objects.get_or_create(user=user)
                 return Response({
                     'token': token.key,
                     'user_id': user.pk,
                     'username': user.username,
-                    'staff_id': lecturer.staff_id  # Include staff ID in the response
+                    'staff_id': lecturer.staff_id
                 })
             else:
                 return Response({'error': 'Invalid staff ID'}, status=status.HTTP_400_BAD_REQUEST)
@@ -142,9 +137,39 @@ class StaffLoginView(ObtainAuthToken):
 
 # Logout View
 class LogoutView(generics.GenericAPIView):
+    serializer_class = LogoutSerializer  # Added serializer_class
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         request.user.auth_token.delete()
         logout(request)
         return Response(status=status.HTTP_200_OK)
+
+# Location-based Attendance View
+class SubmitLocationView(generics.GenericAPIView):
+    serializer_class = SubmitLocationSerializer  # Added serializer_class
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        attendance_token = request.data.get('attendance_token')
+        
+        try:
+            token = AttendanceToken.objects.get(token=attendance_token, is_active=True)
+        except AttendanceToken.DoesNotExist:
+            return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        attendance = Attendance.objects.filter(course=token.course, date=timezone.now().date()).first()
+        
+        if attendance and attendance.is_within_radius(float(latitude), float(longitude)):
+            user = request.user
+            if hasattr(user, 'student'):
+                student = user.student
+                if student in token.course.students.all():
+                    attendance.present_students.add(student)
+                    attendance.save()
+                    return Response({'status': 'Attendance marked successfully'}, status=status.HTTP_200_OK)
+            return Response({'error': 'Student not enrolled in this course'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'error': 'Location is out of range'}, status=status.HTTP_400_BAD_REQUEST)
