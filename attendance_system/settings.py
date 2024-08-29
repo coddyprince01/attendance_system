@@ -25,8 +25,13 @@ SECRET_KEY = 'django-insecure-+76jshpcgfuy%+((^n57ev)t6du*qxo5z0@d_nxt$(wc@)s*2*
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['attendance-system-6a30.onrender.com', 'localhost', '127.0.0.1']
 
+# Allowed hosts
+ALLOWED_HOSTS = [
+    'attendance-system-6a30.onrender.com',  # Your deployment host
+    'localhost',
+    '127.0.0.1'
+]
 
 # Application definition
 
@@ -38,15 +43,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST Framework
-    'rest_framework.authtoken',  # Django REST Framework Token Authentication
+    'rest_framework.authtoken',  # Token Authentication for DRF
     'attendance',  # Your app name
     'django_cleanup',  # Automatically deletes old files from ImageField when updating
     'attendance_system',
     'openpyxl',
     'drf_yasg',
+    'corsheaders',  # CORS Headers
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware should be above CommonMiddleware
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,8 +86,6 @@ WSGI_APPLICATION = 'attendance_system.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -90,46 +95,27 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -144,8 +130,6 @@ REST_FRAMEWORK = {
 }
 
 # GIS and other settings
-# os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal309.dll'
-# os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
 GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', 'C:\\GDAL\\bin\\gdal304.dll')
 
 AUTHENTICATION_BACKENDS = (
@@ -154,8 +138,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default backend
 )
 
-# Django settings for the attendance_system project
-
+# Swagger settings for API documentation
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'TokenAuth': {
@@ -165,10 +148,13 @@ SWAGGER_SETTINGS = {
             'description': 'Token-based authentication using Bearer token',
         }
     },
-    'SECURITY': [
-        {
-            'TokenAuth': []
-        }
-    ],
+    'SECURITY': [{'TokenAuth': []}],
 }
 
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "https://attendance-system-6a30.onrender.com",  # Your deployed backend
+    "http://localhost:3000",  # Localhost for development (adjust port as needed)
+    "http://127.0.0.1:3000",  # Localhost IP for development (adjust port as needed)
+    "http://localhost:8000",  # If using another local environment
+]
