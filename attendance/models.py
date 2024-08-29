@@ -6,7 +6,7 @@ from datetime import timedelta
 
 class Lecturer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    staff_id = models.CharField(max_length=20, unique=True)  # Added staff_id
+    staff_id = models.CharField(max_length=10, unique=True,)  # Added staff_id
     name = models.CharField(max_length=100)
     profile_picture = models.ImageField(upload_to='lecturer_pictures/', blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -18,7 +18,7 @@ class Lecturer(models.Model):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    student_id = models.CharField(max_length=20, unique=True)  # Added student_id
+    student_id = models.CharField(max_length=10, unique=True)  # Added student_id
     name = models.CharField(max_length=100)
 
     def __str__(self):
